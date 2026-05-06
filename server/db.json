@@ -1,0 +1,585 @@
+{
+  "teams": [
+    {
+      "id": "team-1",
+      "name": "Core Platform",
+      "description": "Core services",
+      "created_at": "2026-01-01"
+    },
+    {
+      "id": "team-2",
+      "name": "Frontend Guild",
+      "description": "Frontend engineering",
+      "created_at": "2026-01-01"
+    },
+    {
+      "id": "team-3",
+      "name": "Data Science",
+      "description": "Analytics and models",
+      "created_at": "2026-01-01"
+    },
+    {
+      "id": "hs8Z3S7W",
+      "created_at": "2026-05-06T11:26:50.595Z",
+      "updated_at": "2026-05-06T11:26:50.595Z",
+      "name": "CEDA Team",
+      "description": "CEDA Team"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-1",
+      "name": "Python"
+    },
+    {
+      "id": "cat-2",
+      "name": "Web Development"
+    },
+    {
+      "id": "cat-3",
+      "name": "DevOps"
+    },
+    {
+      "id": "cat-4",
+      "name": "Data Engineering"
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill-1",
+      "name": "Django",
+      "category_id": "cat-1"
+    },
+    {
+      "id": "skill-2",
+      "name": "Flask",
+      "category_id": "cat-1"
+    },
+    {
+      "id": "skill-3",
+      "name": "FastAPI",
+      "category_id": "cat-1"
+    },
+    {
+      "id": "skill-4",
+      "name": "Pandas",
+      "category_id": "cat-1"
+    },
+    {
+      "id": "skill-5",
+      "name": "NumPy",
+      "category_id": "cat-1"
+    },
+    {
+      "id": "skill-6",
+      "name": "PyTest",
+      "category_id": "cat-1"
+    },
+    {
+      "id": "skill-7",
+      "name": "React",
+      "category_id": "cat-2"
+    },
+    {
+      "id": "skill-8",
+      "name": "Vue.js",
+      "category_id": "cat-2"
+    },
+    {
+      "id": "skill-9",
+      "name": "Angular",
+      "category_id": "cat-2"
+    },
+    {
+      "id": "skill-10",
+      "name": "TypeScript",
+      "category_id": "cat-2"
+    },
+    {
+      "id": "skill-11",
+      "name": "HTML/CSS",
+      "category_id": "cat-2"
+    },
+    {
+      "id": "skill-12",
+      "name": "Next.js",
+      "category_id": "cat-2"
+    },
+    {
+      "id": "skill-13",
+      "name": "Kubernetes",
+      "category_id": "cat-3"
+    },
+    {
+      "id": "skill-14",
+      "name": "Docker",
+      "category_id": "cat-3"
+    },
+    {
+      "id": "skill-15",
+      "name": "Terraform",
+      "category_id": "cat-3"
+    },
+    {
+      "id": "skill-16",
+      "name": "Ansible",
+      "category_id": "cat-3"
+    },
+    {
+      "id": "skill-17",
+      "name": "CI/CD",
+      "category_id": "cat-3"
+    },
+    {
+      "id": "skill-18",
+      "name": "Prometheus",
+      "category_id": "cat-3"
+    },
+    {
+      "id": "skill-19",
+      "name": "Elasticsearch",
+      "category_id": "cat-4"
+    },
+    {
+      "id": "skill-20",
+      "name": "Kafka",
+      "category_id": "cat-4"
+    },
+    {
+      "id": "skill-21",
+      "name": "Airflow",
+      "category_id": "cat-4"
+    },
+    {
+      "id": "skill-22",
+      "name": "Spark",
+      "category_id": "cat-4"
+    },
+    {
+      "id": "ex1PMG4z",
+      "created_at": "2026-05-06T11:22:44.205Z",
+      "updated_at": "2026-05-06T11:22:44.205Z",
+      "name": "Industrial Data Streams",
+      "category_id": "cat-4",
+      "tags": []
+    },
+    {
+      "id": "5ALduy-x",
+      "created_at": "2026-05-06T11:28:41.145Z",
+      "updated_at": "2026-05-06T11:28:41.145Z",
+      "name": "Pytest",
+      "category_id": "cat-1",
+      "tags": []
+    }
+  ],
+  "users": [
+    {
+      "id": "user-1",
+      "name": "Alice Rivera",
+      "email": "alice@example.com",
+      "team_id": "team-1"
+    },
+    {
+      "id": "user-2",
+      "name": "Ben Cho",
+      "email": "ben@example.com",
+      "team_id": "team-2"
+    },
+    {
+      "id": "user-3",
+      "name": "Carla Gomez",
+      "email": "carla@example.com",
+      "team_id": "team-3"
+    },
+    {
+      "id": "user-4",
+      "name": "Daniel Li",
+      "email": "daniel@example.com",
+      "team_id": "team-1"
+    },
+    {
+      "id": "user-5",
+      "name": "Erica Patel",
+      "email": "erica@example.com",
+      "team_id": "team-2"
+    },
+    {
+      "id": "user-6",
+      "name": "Frank Müller",
+      "email": "frank@example.com",
+      "team_id": "team-1"
+    },
+    {
+      "id": "user-7",
+      "name": "Grace Kim",
+      "email": "grace@example.com",
+      "team_id": "team-3"
+    },
+    {
+      "id": "user-8",
+      "name": "Hugo Santos",
+      "email": "hugo@example.com",
+      "team_id": null
+    },
+    {
+      "id": "user-9",
+      "name": "Isha Kapoor",
+      "email": "isha@example.com",
+      "team_id": "team-2"
+    },
+    {
+      "id": "user-10",
+      "name": "Joel Park",
+      "email": "joel@example.com",
+      "team_id": "team-1"
+    },
+    {
+      "id": "E4JNPv-2",
+      "created_at": "2026-05-05T15:02:02.747Z",
+      "updated_at": "2026-05-05T15:02:02.747Z",
+      "name": "Hannag",
+      "email": "a.b@c.com",
+      "team_id": "team-1"
+    },
+    {
+      "id": "lbmhPh-6",
+      "created_at": "2026-05-06T11:28:21.233Z",
+      "updated_at": "2026-05-06T11:28:21.233Z",
+      "name": "Fred",
+      "email": "fred.bevans@example.com",
+      "team_id": "hs8Z3S7W"
+    }
+  ],
+  "user_skills": [
+    {
+      "id": "us-1",
+      "user_id": "user-1",
+      "skill_id": "skill-1",
+      "level": "advanced"
+    },
+    {
+      "id": "us-2",
+      "user_id": "user-1",
+      "skill_id": "skill-14",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-3",
+      "user_id": "user-1",
+      "skill_id": "skill-13",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-4",
+      "user_id": "user-2",
+      "skill_id": "skill-7",
+      "level": "expert"
+    },
+    {
+      "id": "us-5",
+      "user_id": "user-2",
+      "skill_id": "skill-10",
+      "level": "expert"
+    },
+    {
+      "id": "us-6",
+      "user_id": "user-2",
+      "skill_id": "skill-11",
+      "level": "expert"
+    },
+    {
+      "id": "us-7",
+      "user_id": "user-2",
+      "skill_id": "skill-12",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-8",
+      "user_id": "user-3",
+      "skill_id": "skill-4",
+      "level": "expert"
+    },
+    {
+      "id": "us-9",
+      "user_id": "user-3",
+      "skill_id": "skill-5",
+      "level": "expert"
+    },
+    {
+      "id": "us-10",
+      "user_id": "user-3",
+      "skill_id": "skill-22",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-11",
+      "user_id": "user-4",
+      "skill_id": "skill-2",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-12",
+      "user_id": "user-4",
+      "skill_id": "skill-15",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-13",
+      "user_id": "user-4",
+      "skill_id": "skill-17",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-14",
+      "user_id": "user-5",
+      "skill_id": "skill-8",
+      "level": "advanced"
+    },
+    {
+      "id": "us-15",
+      "user_id": "user-5",
+      "skill_id": "skill-9",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-16",
+      "user_id": "user-5",
+      "skill_id": "skill-11",
+      "level": "expert"
+    },
+    {
+      "id": "us-17",
+      "user_id": "user-6",
+      "skill_id": "skill-13",
+      "level": "advanced"
+    },
+    {
+      "id": "us-18",
+      "user_id": "user-6",
+      "skill_id": "skill-18",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-19",
+      "user_id": "user-6",
+      "skill_id": "skill-16",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-20",
+      "user_id": "user-7",
+      "skill_id": "skill-19",
+      "level": "advanced"
+    },
+    {
+      "id": "us-21",
+      "user_id": "user-7",
+      "skill_id": "skill-20",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-22",
+      "user_id": "user-7",
+      "skill_id": "skill-21",
+      "level": "intermediate"
+    },
+    {
+      "id": "us-23",
+      "user_id": "user-8",
+      "skill_id": "skill-3",
+      "level": "advanced"
+    },
+    {
+      "id": "us-24",
+      "user_id": "user-8",
+      "skill_id": "skill-6",
+      "level": "advanced"
+    },
+    {
+      "id": "us-25",
+      "user_id": "user-8",
+      "skill_id": "skill-14",
+      "level": "advanced"
+    },
+    {
+      "id": "us-26",
+      "user_id": "user-9",
+      "skill_id": "skill-7",
+      "level": "advanced"
+    },
+    {
+      "id": "us-27",
+      "user_id": "user-9",
+      "skill_id": "skill-10",
+      "level": "advanced"
+    },
+    {
+      "id": "us-28",
+      "user_id": "user-9",
+      "skill_id": "skill-12",
+      "level": "advanced"
+    },
+    {
+      "id": "us-29",
+      "user_id": "user-10",
+      "skill_id": "skill-15",
+      "level": "advanced"
+    },
+    {
+      "id": "us-30",
+      "user_id": "user-10",
+      "skill_id": "skill-16",
+      "level": "advanced"
+    },
+    {
+      "id": "us-31",
+      "user_id": "user-10",
+      "skill_id": "skill-17",
+      "level": "advanced"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1",
+      "name": "Search 2.0",
+      "summary": "Replace search infra with new stack",
+      "owner_team_id": "team-3",
+      "status": "active",
+      "required_skills": [
+        {
+          "skill_id": "skill-19",
+          "min_level": "expert"
+        },
+        {
+          "skill_id": "skill-7",
+          "min_level": "intermediate"
+        },
+        {
+          "skill_id": "skill-1",
+          "min_level": "intermediate"
+        },
+        {
+          "skill_id": "skill-13",
+          "min_level": "intermediate"
+        }
+      ]
+    },
+    {
+      "id": "proj-2",
+      "name": "Realtime Analytics",
+      "summary": "Stream and compute realtime metrics",
+      "owner_team_id": "team-1",
+      "status": "planning",
+      "required_skills": [
+        {
+          "skill_id": "skill-20",
+          "min_level": "advanced"
+        },
+        {
+          "skill_id": "skill-22",
+          "min_level": "advanced"
+        },
+        {
+          "skill_id": "skill-21",
+          "min_level": "intermediate"
+        },
+        {
+          "skill_id": "skill-4",
+          "min_level": "intermediate"
+        }
+      ]
+    },
+    {
+      "id": "proj-3",
+      "name": "Customer Portal",
+      "summary": "New customer-facing portal",
+      "owner_team_id": "team-2",
+      "status": "active",
+      "required_skills": [
+        {
+          "skill_id": "skill-7",
+          "min_level": "expert"
+        },
+        {
+          "skill_id": "skill-10",
+          "min_level": "expert"
+        },
+        {
+          "skill_id": "skill-1",
+          "min_level": "intermediate"
+        },
+        {
+          "skill_id": "skill-14",
+          "min_level": "intermediate"
+        }
+      ]
+    },
+    {
+      "id": "proj-4",
+      "name": "Platform Infra Revamp",
+      "summary": "Improve infra as code and observability",
+      "owner_team_id": "team-1",
+      "status": "backlog",
+      "required_skills": [
+        {
+          "skill_id": "skill-15",
+          "min_level": "advanced"
+        },
+        {
+          "skill_id": "skill-13",
+          "min_level": "advanced"
+        },
+        {
+          "skill_id": "skill-18",
+          "min_level": "intermediate"
+        },
+        {
+          "skill_id": "skill-16",
+          "min_level": "intermediate"
+        }
+      ]
+    },
+    {
+      "id": "GQkdvYi9",
+      "created_at": "2026-05-06T11:23:16.376Z",
+      "updated_at": "2026-05-06T11:23:16.376Z",
+      "name": "EODH",
+      "summary": "Earth Observation Data Hub",
+      "owner_team_id": "team-1",
+      "status": "planning",
+      "required_skills": [
+        {
+          "skill_id": "ex1PMG4z",
+          "min_level": "intermediate"
+        },
+        {
+          "skill_id": "skill-1",
+          "min_level": "intermediate"
+        },
+        {
+          "skill_id": "skill-7",
+          "min_level": "intermediate"
+        }
+      ]
+    },
+    {
+      "id": "rg3nL1vV",
+      "created_at": "2026-05-06T11:26:34.819Z",
+      "updated_at": "2026-05-06T11:26:34.819Z",
+      "name": "A new proj",
+      "summary": "Summary",
+      "owner_team_id": "team-1",
+      "status": "planning",
+      "required_skills": [
+        {
+          "skill_id": "skill-13",
+          "min_level": "beginner"
+        },
+        {
+          "skill_id": "skill-1",
+          "min_level": "intermediate"
+        }
+      ]
+    }
+  ]
+}

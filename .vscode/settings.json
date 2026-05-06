@@ -1,0 +1,16 @@
+{
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/dist": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        "/^node -e \"const fs = require\\('fs'\\); const path = require\\('path'\\); const data = JSON\\.parse\\(fs\\.readFileSync\\(path\\.join\\(process\\.cwd\\(\\),'server','db\\.json'\\),'utf8'\\)\\); const q='python'; const categoryNameById = Object\\.fromEntries\\(data\\.categories\\.map\\(c=>\\[c\\.id,\\(c\\.name\\|\\|''\\)\\.toLowerCase\\(\\)\\]\\)\\); const skills = data\\.skills\\.filter\\(s => s\\.name\\.toLowerCase\\(\\)\\.includes\\(q\\) \\|\\| \\(s\\.tags\\|\\|\\[\\]\\)\\.some\\(t=>t\\.toLowerCase\\(\\)\\.includes\\(q\\)\\) \\|\\| \\(categoryNameById\\[s\\.category_id\\]\\|\\|''\\)\\.includes\\(q\\)\\); const categories = data\\.categories\\.filter\\(c => c\\.name\\.toLowerCase\\(\\)\\.includes\\(q\\)\\); console\\.log\\('skills matches',skills\\.map\\(s=>s\\.name\\)\\); console\\.log\\('categories matches',categories\\.map\\(c=>c\\.name\\)\\);\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

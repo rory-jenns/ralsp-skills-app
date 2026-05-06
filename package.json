@@ -1,0 +1,51 @@
+{
+    "name": "modern-web-app",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "dev:api": "node server/index.js",
+        "dev:all": "concurrently \"npm:dev:api\" \"npm:dev\"",
+        "build": "vite build",
+        "preview": "vite preview --port 5173",
+        "lint": "eslint --ext .ts,.tsx src --max-warnings 0",
+        "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
+        "test": "vitest",
+        "test:ui": "vitest --ui",
+        "typecheck": "tsc --noEmit"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "devDependencies": {
+        "@testing-library/jest-dom": "^6",
+        "@testing-library/react": "^14",
+        "@types/node": "^20.4.2",
+        "@types/react": "^18.2.28",
+        "@types/react-dom": "^18.2.8",
+        "@typescript-eslint/eslint-plugin": "^6",
+        "@typescript-eslint/parser": "^6",
+        "@vitejs/plugin-react": "^5",
+        "autoprefixer": "^10",
+        "eslint": "^8",
+        "eslint-config-prettier": "^9",
+        "eslint-plugin-react": "^7",
+        "eslint-plugin-react-hooks": "^4",
+        "jsdom": "^29.1.1",
+        "postcss": "^8",
+        "prettier": "^3",
+        "tailwindcss": "^3",
+        "tslib": "^2",
+        "typescript": "^5",
+        "vite": "^5",
+        "vitest": "^1"
+    },
+    "dependencies": {
+        "axios": "^1",
+        "concurrently": "^8",
+        "react": "18.2.0",
+        "react-dom": "18.2.0",
+        "react-router-dom": "^6"
+    }
+}
