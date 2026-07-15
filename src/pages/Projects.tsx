@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import Alert from '../components/Alert'
 import axios from 'axios'
+import { useAuth } from '../auth'
 
 interface Project {
     id: string
@@ -8,6 +10,7 @@ interface Project {
     summary: string
     status: string
     required_skills?: Array<{ skill_id: string; min_level: string }>
+    owner_id?: string
 }
 
 interface Skill {
@@ -23,10 +26,13 @@ interface MatchResult {
 }
 
 export default function Projects() {
+    const auth = useAuth()
     const [projects, setProjects] = useState<Project[]>([])
     const [skills, setSkills] = useState<Skill[]>([])
     const [loading, setLoading] = useState(true)
     const [matchResults, setMatchResults] = useState<Record<string, MatchResult[]>>({})
+    const [message, setMessage] = useState<string | null>(null)
+    const [messageType, setMessageType] = useState<'error' | 'success' | 'info' | null>(null)
 
     useEffect(() => {
         Promise.all([axios.get('/api/projects'), axios.get('/api/skills')])
@@ -57,11 +63,14 @@ export default function Projects() {
                         <h2 className="text-3xl font-semibold text-slate-900">Projects</h2>
                         <p className="mt-2 text-slate-600">Browse active projects and run match suggestions for your team.</p>
                     </div>
-                    <div className="flex flex-wrap gap-3">
-                        <Link to="/projects/create" className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Create project</Link>
-                        <Link to="/search" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">Search</Link>
-                    </div>
+                        <div className="flex flex-wrap gap-3">
+                            {auth.user ? (
+                                <Link to="/projects/create" className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Create project</Link>
+                            ) : null}
+                            <Link to="/search" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">Search</Link>
+                        </div>
                 </div>
+                {message && <div className="mt-4"><Alert type={messageType ?? 'info'} message={message} /></div>}
             </div>
 
             {loading ? (
@@ -81,6 +90,20 @@ export default function Projects() {
                                     <span className={`rounded-full px-3 py-1 text-sm font-medium ${project.status === 'active' ? 'bg-emerald-100 text-emerald-700' : project.status === 'planning' ? 'bg-sky-100 text-sky-700' : project.status === 'backlog' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>{project.status}</span>
                                     <Link to={`/projects/${project.id}`} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">View project</Link>
                                     <button onClick={() => runMatch(project.id)} className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">Run match</button>
+                                    {(auth.user && (auth.user.role === 'admin' || auth.user.id === project.owner_id)) && (
+                                        <button onClick={async () => {
+                                            if (!confirm(`Delete project "${project.name}"? This cannot be undone.`)) return
+                                            try {
+                                                await axios.delete(`/api/projects/${project.id}`)
+                                                setProjects(prev => prev.filter(p => p.id !== project.id))
+                                                setMessage('Project deleted')
+                                                setMessageType('success')
+                                            } catch (err: any) {
+                                                setMessage(err.response?.data?.error || 'Failed to delete project')
+                                                setMessageType('error')
+                                            }
+                                        }} className="rounded-full bg-transparent px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">Delete</button>
+                                    )}
                                 </div>
                             </div>
                             <div className="p-6">

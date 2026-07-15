@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
+import Alert from '../components/Alert'
+import { useAuth } from '../auth'
 
 interface Category {
     id: string
     name: string
+    owner_id?: string
 }
 
 interface Skill {
@@ -14,10 +17,12 @@ interface Skill {
 }
 
 export default function Categories() {
+    const auth = useAuth()
     const [categories, setCategories] = useState<Category[]>([])
     const [skills, setSkills] = useState<Skill[]>([])
     const [name, setName] = useState('')
     const [message, setMessage] = useState<string | null>(null)
+    const [messageType, setMessageType] = useState<'error' | 'success' | 'info' | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -43,8 +48,10 @@ export default function Categories() {
             setCategories(prev => [...prev, res.data])
             setName('')
             setMessage('Category created successfully.')
+            setMessageType('success')
         } catch (error: any) {
             setMessage(error.response?.data?.error || 'Failed to create category.')
+            setMessageType('error')
         }
     }
 
@@ -62,8 +69,57 @@ export default function Categories() {
                 </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="grid gap-6 lg:grid-cols-[1fr_0.35fr]">
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm order-1 lg:order-1">
+                    <h3 className="text-xl font-semibold text-slate-900">Category library</h3>
+                    <div className="mt-6 grid gap-4">
+                        {loading ? (
+                            <div className="text-slate-500">Loading categories…</div>
+                        ) : error ? (
+                            <div className="text-red-600">{error}</div>
+                        ) : categories.length === 0 ? (
+                            <div className="text-slate-500">No categories created yet.</div>
+                            ) : (
+                            categories.map(category => (
+                                <div key={category.id} className="flex items-start justify-between">
+                                    <Link
+                                        to={`/skills?category=${category.id}`}
+                                        className="block flex-1 overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-5 transition hover:border-slate-300 hover:bg-white mr-3"
+                                    >
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="font-semibold text-slate-900">{category.name}</div>
+                                                <div className="text-sm text-slate-500">{countSkills(category.id)} skills</div>
+                                            </div>
+                                            <div className="rounded-full bg-slate-100 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-600">{category.id}</div>
+                                        </div>
+                                    </Link>
+                                    {(auth.user && (auth.user.role === 'admin' || auth.user.id === category.owner_id)) && (
+                                        <button onClick={async (e) => {
+                                            e.preventDefault()
+                                            if (!confirm(`Delete category "${category.name}"? This cannot be undone.`)) return
+                                            try {
+                                                await axios.delete(`/api/categories/${category.id}`)
+                                                setCategories(prev => prev.filter(c => c.id !== category.id))
+                                                setMessage(`Deleted category ${category.name}`)
+                                                setMessageType('success')
+                                            } catch (err: any) {
+                                                setMessage(err.response?.data?.error || 'Failed to delete category')
+                                                setMessageType('error')
+                                            }
+                                        }} className="inline-flex items-center rounded-full bg-transparent p-2 text-red-600 hover:bg-red-50">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M10 3h4l1 4H9l1-4z" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm order-2 lg:order-2">
                     <h3 className="text-xl font-semibold text-slate-900">Create category</h3>
                     <form onSubmit={createCategory} className="mt-6 space-y-5">
                         <label className="block">
@@ -77,37 +133,8 @@ export default function Categories() {
                             />
                         </label>
                         <button type="submit" className="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Add category</button>
-                        {message && <div className="rounded-3xl bg-slate-50 p-4 text-sm text-slate-700">{message}</div>}
+                        {message && <Alert type={messageType ?? 'info'} message={message} />}
                     </form>
-                </div>
-
-                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h3 className="text-xl font-semibold text-slate-900">Category library</h3>
-                    <div className="mt-6 grid gap-4">
-                        {loading ? (
-                            <div className="text-slate-500">Loading categories…</div>
-                        ) : error ? (
-                            <div className="text-red-600">{error}</div>
-                        ) : categories.length === 0 ? (
-                            <div className="text-slate-500">No categories created yet.</div>
-                        ) : (
-                            categories.map(category => (
-                                <Link
-                                    key={category.id}
-                                    to={`/skills?category=${category.id}`}
-                                    className="block overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-5 transition hover:border-slate-300 hover:bg-white"
-                                >
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div>
-                                            <div className="font-semibold text-slate-900">{category.name}</div>
-                                            <div className="text-sm text-slate-500">{countSkills(category.id)} skills</div>
-                                        </div>
-                                        <div className="rounded-full bg-slate-100 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-600">{category.id}</div>
-                                    </div>
-                                </Link>
-                            ))
-                        )}
-                    </div>
                 </div>
             </div>
         </div>

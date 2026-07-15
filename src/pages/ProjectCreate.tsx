@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useAuth } from '../auth'
+import Alert from '../components/Alert'
 
 interface SkillOption {
     id: string
@@ -22,6 +24,7 @@ const LEVELS = ['beginner', 'intermediate', 'advanced', 'expert']
 
 export default function ProjectCreate() {
     const navigate = useNavigate()
+    const auth = useAuth()
     const [teams, setTeams] = useState<Team[]>([])
     const [skills, setSkills] = useState<SkillOption[]>([])
     const [categories, setCategories] = useState<Category[]>([])
@@ -33,8 +36,10 @@ export default function ProjectCreate() {
     const [newSkillName, setNewSkillName] = useState('')
     const [newSkillCategoryId, setNewSkillCategoryId] = useState('')
     const [message, setMessage] = useState<string | null>(null)
+    const [messageType, setMessageType] = useState<'error' | 'success' | 'info' | null>(null)
 
     useEffect(() => {
+        if (!auth.user) navigate('/login')
         Promise.all([axios.get('/api/teams'), axios.get('/api/skills'), axios.get('/api/categories')]).then(
             ([teamsRes, skillsRes, categoriesRes]) => {
                 setTeams(teamsRes.data)
@@ -64,9 +69,11 @@ export default function ProjectCreate() {
             const res = await axios.post('/api/skills', { name: newSkillName, category_id: newSkillCategoryId, tags: [] })
             setSkills(prev => [...prev, res.data])
             setMessage(`Created skill ${res.data.name}`)
+            setMessageType('success')
             setNewSkillName('')
         } catch (error: any) {
             setMessage(error.response?.data?.error || 'Failed to create skill')
+            setMessageType('error')
         }
     }
 
@@ -78,6 +85,7 @@ export default function ProjectCreate() {
             navigate(`/projects/${res.data.id}`)
         } catch (error: any) {
             setMessage(error.response?.data?.error || 'Failed to create project')
+            setMessageType('error')
         }
     }
 
@@ -205,7 +213,7 @@ export default function ProjectCreate() {
                     </div>
                 </div>
 
-                {message && <div className="rounded bg-red-50 p-3 text-sm text-red-700">{message}</div>}
+                {message && <Alert type={messageType ?? 'info'} message={message} />}
 
                 <button type="submit" className="rounded bg-blue-600 px-6 py-3 text-white hover:bg-blue-700">Create project</button>
             </form>

@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[env.production]
+  VITE_API_URL = "https://your-render-backend.onrender.com"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://your-render-backend.onrender.com/api/:splat"
+  status = 200

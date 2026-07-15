@@ -4,156 +4,194 @@
       "id": "team-1",
       "name": "Core Platform",
       "description": "Core services",
-      "created_at": "2026-01-01"
+      "created_at": "2026-01-01",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "team-2",
       "name": "Frontend Guild",
       "description": "Frontend engineering",
-      "created_at": "2026-01-01"
+      "created_at": "2026-01-01",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "team-3",
       "name": "Data Science",
       "description": "Analytics and models",
-      "created_at": "2026-01-01"
+      "created_at": "2026-01-01",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "hs8Z3S7W",
       "created_at": "2026-05-06T11:26:50.595Z",
       "updated_at": "2026-05-06T11:26:50.595Z",
       "name": "CEDA Team",
-      "description": "CEDA Team"
+      "description": "CEDA Team",
+      "owner_id": "EFJvpl7B"
+    },
+    {
+      "id": "_txWHS4m",
+      "owner_id": "user-7",
+      "created_at": "2026-05-21T13:07:26.509Z",
+      "updated_at": "2026-05-21T13:07:26.509Z",
+      "name": "UX Team",
+      "description": "Team of user experience experts"
     }
   ],
   "categories": [
     {
       "id": "cat-1",
-      "name": "Python"
+      "name": "Python",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "cat-2",
-      "name": "Web Development"
+      "name": "Web Development",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "cat-3",
-      "name": "DevOps"
+      "name": "DevOps",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "cat-4",
-      "name": "Data Engineering"
+      "name": "Data Engineering",
+      "owner_id": "EFJvpl7B"
     }
   ],
   "skills": [
     {
       "id": "skill-1",
       "name": "Django",
-      "category_id": "cat-1"
+      "category_id": "cat-1",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-2",
       "name": "Flask",
-      "category_id": "cat-1"
+      "category_id": "cat-1",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-3",
       "name": "FastAPI",
-      "category_id": "cat-1"
+      "category_id": "cat-1",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-4",
       "name": "Pandas",
-      "category_id": "cat-1"
+      "category_id": "cat-1",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-5",
       "name": "NumPy",
-      "category_id": "cat-1"
+      "category_id": "cat-1",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-6",
       "name": "PyTest",
-      "category_id": "cat-1"
+      "category_id": "cat-1",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-7",
       "name": "React",
-      "category_id": "cat-2"
+      "category_id": "cat-2",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-8",
       "name": "Vue.js",
-      "category_id": "cat-2"
+      "category_id": "cat-2",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-9",
       "name": "Angular",
-      "category_id": "cat-2"
+      "category_id": "cat-2",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-10",
       "name": "TypeScript",
-      "category_id": "cat-2"
+      "category_id": "cat-2",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-11",
       "name": "HTML/CSS",
-      "category_id": "cat-2"
+      "category_id": "cat-2",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-12",
       "name": "Next.js",
-      "category_id": "cat-2"
+      "category_id": "cat-2",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-13",
       "name": "Kubernetes",
-      "category_id": "cat-3"
+      "category_id": "cat-3",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-14",
       "name": "Docker",
-      "category_id": "cat-3"
+      "category_id": "cat-3",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-15",
       "name": "Terraform",
-      "category_id": "cat-3"
+      "category_id": "cat-3",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-16",
       "name": "Ansible",
-      "category_id": "cat-3"
+      "category_id": "cat-3",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-17",
       "name": "CI/CD",
-      "category_id": "cat-3"
+      "category_id": "cat-3",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-18",
       "name": "Prometheus",
-      "category_id": "cat-3"
+      "category_id": "cat-3",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-19",
       "name": "Elasticsearch",
-      "category_id": "cat-4"
+      "category_id": "cat-4",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-20",
       "name": "Kafka",
-      "category_id": "cat-4"
+      "category_id": "cat-4",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-21",
       "name": "Airflow",
-      "category_id": "cat-4"
+      "category_id": "cat-4",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "skill-22",
       "name": "Spark",
-      "category_id": "cat-4"
+      "category_id": "cat-4",
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "ex1PMG4z",
@@ -161,7 +199,8 @@
       "updated_at": "2026-05-06T11:22:44.205Z",
       "name": "Industrial Data Streams",
       "category_id": "cat-4",
-      "tags": []
+      "tags": [],
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "5ALduy-x",
@@ -169,85 +208,167 @@
       "updated_at": "2026-05-06T11:28:41.145Z",
       "name": "Pytest",
       "category_id": "cat-1",
+      "tags": [],
+      "owner_id": "EFJvpl7B"
+    },
+    {
+      "id": "NsWpvUxV",
+      "created_at": "2026-05-21T12:05:13.876Z",
+      "updated_at": "2026-05-21T12:05:13.876Z",
+      "name": "User knowledge",
+      "category_id": "ycZFJVF_",
+      "tags": [],
+      "owner_id": "EFJvpl7B"
+    },
+    {
+      "id": "EnvRL9SS",
+      "owner_id": "EFJvpl7B",
+      "created_at": "2026-05-21T12:37:52.563Z",
+      "updated_at": "2026-05-21T12:37:52.563Z",
+      "name": "Flask",
+      "category_id": "cat-3",
       "tags": []
     }
   ],
   "users": [
     {
+      "id": "EFJvpl7B",
+      "name": "admin",
+      "email": "admin@example.com",
+      "role": "admin",
+      "password_hash": "$2b$10$11sUtUhJVpkRT5xfvUakUOYYS6wrGhQU5e472poc8pskpiesyt6.C",
+      "created_at": "2026-05-21T11:55:53.561Z",
+      "updated_at": "2026-05-21T11:55:53.561Z"
+    },
+    {
       "id": "user-1",
       "name": "Alice Rivera",
       "email": "alice@example.com",
-      "team_id": "team-1"
+      "team_id": "team-1",
+      "role": "user",
+      "created_at": "2026-05-21T11:55:53.545Z",
+      "updated_at": "2026-05-21T12:48:47.789Z",
+      "password_hash": "$2b$10$uiqyuAmlY0gwpCrPKRT0YubAyQATInAPpWsLn8JTyWwwSNOuYAmkC"
     },
     {
       "id": "user-2",
       "name": "Ben Cho",
       "email": "ben@example.com",
-      "team_id": "team-2"
+      "team_id": "team-2",
+      "role": "user",
+      "created_at": "2026-05-21T11:55:53.560Z",
+      "updated_at": "2026-05-21T12:48:48.001Z",
+      "password_hash": "$2b$10$khzW2c96..5MM2ky8Y22aOj2CCLNY09WGHS4gCIz7duWz.ELT.Pfi"
     },
     {
       "id": "user-3",
       "name": "Carla Gomez",
       "email": "carla@example.com",
-      "team_id": "team-3"
+      "team_id": "team-3",
+      "role": "user",
+      "created_at": "2026-05-21T11:55:53.560Z",
+      "updated_at": "2026-05-21T12:48:48.202Z",
+      "password_hash": "$2b$10$2OcCVr2UbiKFMBZm6Ehfq.MeullTYXcysOOIpdf5OXfjSfBrzjhGe"
     },
     {
       "id": "user-4",
       "name": "Daniel Li",
       "email": "daniel@example.com",
-      "team_id": "team-1"
+      "team_id": "team-1",
+      "role": "user",
+      "created_at": "2026-05-21T11:55:53.560Z",
+      "updated_at": "2026-05-21T12:48:48.385Z",
+      "password_hash": "$2b$10$t.sOEiTP/ZaH1L2rR8ysk.qAGw6EX00zWBJlRn9mz3m/3ZIlemMpy"
     },
     {
       "id": "user-5",
       "name": "Erica Patel",
       "email": "erica@example.com",
-      "team_id": "team-2"
+      "team_id": "team-2",
+      "role": "user",
+      "created_at": "2026-05-21T11:55:53.560Z",
+      "updated_at": "2026-05-21T12:48:48.563Z",
+      "password_hash": "$2b$10$QBF5PXtWU7KixN7enTk3YuetlIRBZvKlPZP5Cmnsv6GlhXecvB.Mu"
     },
     {
       "id": "user-6",
       "name": "Frank Müller",
       "email": "frank@example.com",
-      "team_id": "team-1"
+      "team_id": "team-1",
+      "role": "user",
+      "created_at": "2026-05-21T11:55:53.560Z",
+      "updated_at": "2026-05-21T12:48:48.757Z",
+      "password_hash": "$2b$10$yWF.BXfpEqPBHbQa0B66n.INp4RLNo0hfwidBL3XelyCBb7MAhe0O"
     },
     {
       "id": "user-7",
       "name": "Grace Kim",
       "email": "grace@example.com",
-      "team_id": "team-3"
+      "team_id": "team-3",
+      "role": "admin",
+      "created_at": "2026-05-21T11:55:53.560Z",
+      "updated_at": "2026-05-21T12:48:48.927Z",
+      "password_hash": "$2b$10$7qEEV2P.PIyp6m0.mt5AYeZT.VuuvI20Fq8pDgxmeRQTv2ascX6.2"
     },
     {
       "id": "user-8",
       "name": "Hugo Santos",
       "email": "hugo@example.com",
-      "team_id": null
+      "team_id": null,
+      "role": "user",
+      "created_at": "2026-05-21T11:55:53.560Z",
+      "updated_at": "2026-05-21T12:48:49.099Z",
+      "password_hash": "$2b$10$R0qT5zxTGDfsuKlFrrwtrOyE.IAwBworEPTwc77KN6pm9SrNAH712"
     },
     {
       "id": "user-9",
       "name": "Isha Kapoor",
       "email": "isha@example.com",
-      "team_id": "team-2"
+      "team_id": "team-2",
+      "role": "user",
+      "created_at": "2026-05-21T11:55:53.560Z",
+      "updated_at": "2026-05-21T12:48:49.272Z",
+      "password_hash": "$2b$10$xtZOCZDyL2uwfn2vdCKJW.qoYrOSrQyCeGr/QwfpqTTmdukJfyAd2"
     },
     {
       "id": "user-10",
       "name": "Joel Park",
       "email": "joel@example.com",
-      "team_id": "team-1"
+      "team_id": "team-1",
+      "role": "user",
+      "created_at": "2026-05-21T11:55:53.560Z",
+      "updated_at": "2026-05-21T12:48:49.446Z",
+      "password_hash": "$2b$10$Y50UUGplb.ki2dycYRBCQ.iLDJq63EmCtCcgJ89J.lrB6aLbuwBXS"
     },
     {
       "id": "E4JNPv-2",
       "created_at": "2026-05-05T15:02:02.747Z",
-      "updated_at": "2026-05-05T15:02:02.747Z",
+      "updated_at": "2026-05-21T12:48:49.630Z",
       "name": "Hannag",
       "email": "a.b@c.com",
-      "team_id": "team-1"
+      "team_id": "team-1",
+      "role": "user",
+      "password_hash": "$2b$10$w7c3kXzlwHtzKqBMOWScA.LD1Td.5MXuo2KWHmTedENiDob6YMYc."
     },
     {
       "id": "lbmhPh-6",
       "created_at": "2026-05-06T11:28:21.233Z",
-      "updated_at": "2026-05-06T11:28:21.233Z",
+      "updated_at": "2026-05-21T12:48:49.818Z",
       "name": "Fred",
       "email": "fred.bevans@example.com",
-      "team_id": "hs8Z3S7W"
+      "team_id": "hs8Z3S7W",
+      "role": "user",
+      "password_hash": "$2b$10$EIm.G6kASEuyHkO3uUgj1uUixuaMn/2QNHT.d.I413Wy6JEsJ4o.y"
+    },
+    {
+      "id": "sAqb3uBE",
+      "created_at": "2026-05-13T14:27:21.344Z",
+      "updated_at": "2026-05-21T12:48:50.019Z",
+      "name": "Fred",
+      "email": "fred@example.org.uk",
+      "team_id": "",
+      "role": "user",
+      "password_hash": "$2b$10$jcTzKFpAfuCjZzX5Nix1z.neiJQgcCzsU0YxARSukEMeSrQQQk5TK"
     }
   ],
   "user_skills": [
@@ -436,6 +557,30 @@
       "user_id": "user-10",
       "skill_id": "skill-17",
       "level": "advanced"
+    },
+    {
+      "id": "-nVeMKnt",
+      "user_id": "sAqb3uBE",
+      "skill_id": "skill-3",
+      "level": "intermediate"
+    },
+    {
+      "id": "vgH78PKq",
+      "user_id": "sAqb3uBE",
+      "skill_id": "skill-6",
+      "level": "advanced"
+    },
+    {
+      "id": "f1cnO2Rw",
+      "user_id": "sAqb3uBE",
+      "skill_id": "skill-14",
+      "level": "beginner"
+    },
+    {
+      "id": "ueD5HG3G",
+      "user_id": "user-2",
+      "skill_id": "skill-1",
+      "level": "intermediate"
     }
   ],
   "projects": [
@@ -462,7 +607,8 @@
           "skill_id": "skill-13",
           "min_level": "intermediate"
         }
-      ]
+      ],
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "proj-2",
@@ -487,7 +633,8 @@
           "skill_id": "skill-4",
           "min_level": "intermediate"
         }
-      ]
+      ],
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "proj-3",
@@ -512,7 +659,8 @@
           "skill_id": "skill-14",
           "min_level": "intermediate"
         }
-      ]
+      ],
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "proj-4",
@@ -537,7 +685,8 @@
           "skill_id": "skill-16",
           "min_level": "intermediate"
         }
-      ]
+      ],
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "GQkdvYi9",
@@ -560,7 +709,8 @@
           "skill_id": "skill-7",
           "min_level": "intermediate"
         }
-      ]
+      ],
+      "owner_id": "EFJvpl7B"
     },
     {
       "id": "rg3nL1vV",
@@ -579,7 +729,8 @@
           "skill_id": "skill-1",
           "min_level": "intermediate"
         }
-      ]
+      ],
+      "owner_id": "EFJvpl7B"
     }
   ]
 }

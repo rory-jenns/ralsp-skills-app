@@ -57,8 +57,8 @@ export default function Home() {
             <section className="rounded-[2rem] bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-10 text-white shadow-2xl shadow-slate-500/10">
                 <div className="max-w-3xl space-y-4">
                     <p className="text-sm uppercase tracking-[0.35em] text-sky-300">Team skills dashboard</p>
-                    <h1 className="text-4xl font-semibold tracking-tight">Beautifully manage skills, projects, and matches.</h1>
-                    <p className="max-w-2xl text-slate-200">A modern, lightweight workspace for teams to track users, skills, projects and find candidates who fit requirements quickly.</p>
+                    <h1 className="text-4xl font-semibold tracking-tight">Link teams, projects, skills, and people within one simple app.</h1>
+                    <p className="max-w-2xl text-slate-200">A lightweight workspace for teams to track users, skills, projects and find people who fit requirements quickly.</p>
                     <div className="mt-6 flex flex-wrap gap-3">
                         <Link to="/projects" className="rounded-full bg-white/10 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-white/20">Browse projects</Link>
                         <Link to="/users" className="rounded-full bg-slate-800/70 px-5 py-3 text-sm font-semibold text-slate-100 shadow hover:bg-slate-700/80">Browse users</Link>
@@ -88,7 +88,6 @@ export default function Home() {
                             <h2 className="text-2xl font-semibold text-slate-900">Top needed skills</h2>
                             <p className="mt-1 text-slate-500">From active project requirements.</p>
                         </div>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">Updated now</span>
                     </div>
                     <div className="mt-6 flex flex-wrap gap-3">
                         {topSkills.length > 0 ? topSkills.map(skill => (
@@ -103,9 +102,11 @@ export default function Home() {
                     <h2 className="text-2xl font-semibold text-slate-900">Quick actions</h2>
                     <div className="mt-6 grid gap-3">
                         {[
+                            { label: 'Projects', path: '/projects' },
+                            { label: 'Teams', path: '/teams' },
                             { label: 'Users', path: '/users' },
                             { label: 'Skills', path: '/skills' },
-                            { label: 'Projects', path: '/projects' },
+                            { label: 'Categories', path: '/categories' },
                             { label: 'Search', path: '/search' }
                         ].map(action => (
                             <Link key={action.path} to={action.path} className="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-100">

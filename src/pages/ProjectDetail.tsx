@@ -100,7 +100,7 @@ export default function ProjectDetail() {
                         {project.required_skills.map(skill => (
                             <div key={skill.skill_id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
                                 <div className="font-semibold text-slate-900">{skillName(skill.skill_id)}</div>
-                                <div className="mt-1 text-xs tracking-[0.24em] text-slate-500">Minimum {skill.min_level}</div>
+                                <div className="mt-1 text-xs">Minimum: {skill.min_level}</div>
                             </div>
                         ))}
                     </div>
