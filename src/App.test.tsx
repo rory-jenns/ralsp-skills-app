@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 
 vi.mock('axios', () => ({
@@ -16,7 +17,11 @@ vi.mock('axios', () => ({
 
 describe('App', () => {
     it('renders heading', () => {
-        render(<App />)
-        expect(screen.getByText(/Skills App/i)).toBeDefined()
+        render(
+            <MemoryRouter>
+                <App />
+            </MemoryRouter>
+        )
+        expect(screen.getByText(/Home/i)).toBeDefined()
     })
 })
