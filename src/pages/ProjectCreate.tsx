@@ -49,7 +49,7 @@ export default function ProjectCreate() {
                 setNewSkillCategoryId(categoriesRes.data[0]?.id || '')
             }
         )
-    }, [])
+    }, [auth.user, navigate])
 
     const addSkillRow = () => {
         setRequiredSkills(prev => [...prev, { skill_id: skills[0]?.id || '', min_level: 'intermediate' }])

@@ -6,7 +6,7 @@ type User = { id: string; name: string; email: string; role?: string } | null
 type AuthContextType = {
     user: User
     token: string | null
-    login: (email: string, password: string) => Promise<void>
+    login: (email: string, password: string) => Promise<void> // eslint-disable-line no-unused-vars
     logout: () => void
 }
 

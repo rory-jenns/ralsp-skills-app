@@ -22,7 +22,11 @@ export default function Search() {
         }
         // if there's an in-flight request, abort it
         if (abortRef.current) {
-            try { abortRef.current.abort() } catch (e) {}
+            try {
+                abortRef.current.abort()
+            } catch (e) {
+                // Ignore errors during abort
+            }
             abortRef.current = null
         }
 
@@ -40,7 +44,10 @@ export default function Search() {
             axios.get('/api/search', { params: { q: query, type: tab }, signal: controller.signal })
                 .then(res => setResults(res.data))
                 .catch(err => {
-                    if (err.name === 'CanceledError' || err.name === 'AbortError') return
+                    if (err.name === 'CanceledError' || err.name === 'AbortError') {
+                        // Request was cancelled, ignore
+                        return
+                    }
                 })
                 .finally(() => {
                     setLoading(false)
@@ -54,7 +61,11 @@ export default function Search() {
                 debounceRef.current = null
             }
             if (abortRef.current) {
-                try { abortRef.current.abort() } catch (e) {}
+                try {
+                    abortRef.current.abort()
+                } catch (e) {
+                    // Ignore errors during abort
+                }
                 abortRef.current = null
             }
         }
