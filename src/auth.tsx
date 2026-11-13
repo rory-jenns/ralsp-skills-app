@@ -6,7 +6,8 @@ type User = { id: string; name: string; email: string; role?: string } | null
 type AuthContextType = {
     user: User
     token: string | null
-    login: (email: string, password: string) => Promise<void> // eslint-disable-line no-unused-vars
+    login: () => void                          // redirects to GitHub
+    completeLogin: (token: string) => void     // called by the callback page
     logout: () => void
 }
 
@@ -20,8 +21,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
             localStorage.setItem('token', token)
-            // fetch current user
-            axios.get('/api/auth/me').then(r => setUser(r.data)).catch(() => { setUser(null); setToken(null); delete axios.defaults.headers.common['Authorization']; localStorage.removeItem('token') })
+            axios.get('/api/auth/me')
+                .then(r => setUser(r.data))
+                .catch(() => {
+                    setUser(null)
+                    setToken(null)
+                    delete axios.defaults.headers.common['Authorization']
+                    localStorage.removeItem('token')
+                })
         } else {
             delete axios.defaults.headers.common['Authorization']
             localStorage.removeItem('token')
@@ -29,10 +36,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [token])
 
-    async function login(email: string, password: string) {
-        const res = await axios.post('/api/auth/login', { email, password })
-        setToken(res.data.token)
-        setUser(res.data.user)
+    function login() {
+        const state = crypto.randomUUID()          // CSRF protection
+        sessionStorage.setItem('oauth_state', state)
+
+        const params = new URLSearchParams({
+            client_id: import.meta.env.VITE_GITHUB_CLIENT_ID,
+            redirect_uri: `${window.location.origin}/auth/github/callback`,
+            // scope: 'read:user user:email',
+            scope: 'user:email',
+            state,
+        })
+        window.location.href = `https://github.com/login/oauth/authorize?${params}`
+    }
+
+    // Setting the token triggers the effect above, which fetches /api/auth/me
+    function completeLogin(newToken: string) {
+        setToken(newToken)
     }
 
     function logout() {
@@ -41,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ user, token, login, completeLogin, logout }}>
             {children}
         </AuthContext.Provider>
     )

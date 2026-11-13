@@ -7,6 +7,7 @@ import Categories from './pages/Categories'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import MySkills from './pages/MySkills'
+import GitHubCallback from './pages/GitHubCallback'
 import { AuthProvider, useAuth } from './auth'
 
 
@@ -125,6 +126,7 @@ export default function App() {
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<SignUp />} />
                             <Route path="/my-skills" element={<MySkills />} />
+                            <Route path="/auth/github/callback" element={<GitHubCallback />} />
                         </Routes>
                     </main>
                 </div>

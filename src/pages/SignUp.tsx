@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../auth'
 
+import GitHubSignInButton from '../components/GitHubSignInButton'
+
 export default function SignUp() {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
@@ -87,6 +89,9 @@ export default function SignUp() {
                     <Link to="/login" className="text-sm text-slate-600 underline">
                         Already have an account?
                     </Link>
+                </div>
+                <div className="flex gap-2 items-center">
+                    <GitHubSignInButton onClick={auth.login} />
                 </div>
             </form>
         </div>

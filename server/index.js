@@ -177,6 +177,73 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
     res.json(req.user)
 })
 
+// ---------- GitHub SSO ----------
+
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
+
+app.post('/api/auth/github', h(async (req, res) => {
+    const { code } = req.body
+    if (!code) return res.status(400).json({ error: 'code required' })
+    if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
+        return res.status(500).json({ error: 'GitHub login is not configured' })
+    }
+
+    // 1. Exchange the one-time code for a GitHub access token
+    const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            client_id: GITHUB_CLIENT_ID,
+            client_secret: GITHUB_CLIENT_SECRET,
+            code,
+        }),
+    })
+    const { access_token } = await tokenRes.json()
+    if (!access_token) return res.status(401).json({ error: 'GitHub login failed' })
+
+    const ghHeaders = {
+        Authorization: `Bearer ${access_token}`,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'your-app-name', // GitHub requires a User-Agent
+    }
+
+    // 2. Fetch the GitHub profile and emails
+    const [profile, emails] = await Promise.all([
+        fetch('https://api.github.com/user', { headers: ghHeaders }).then(r => r.json()),
+        fetch('https://api.github.com/user/emails', { headers: ghHeaders }).then(r => r.json()),
+    ])
+    if (!profile.id) return res.status(401).json({ error: 'GitHub profile fetch failed' })
+
+    const email = emails.find(e => e.primary && e.verified)?.email
+    if (!email) return res.status(400).json({ error: 'GitHub account has no verified email' })
+
+    const githubId = String(profile.id)
+
+    // 3. Find the user by GitHub id, then by email (links an existing account), else create one
+    let user = (await pool.query('SELECT * FROM users WHERE github_id = $1', [githubId])).rows[0]
+
+    if (!user) {
+        const byEmail = (await pool.query('SELECT * FROM users WHERE email = $1', [email])).rows[0]
+        if (byEmail) {
+            user = await updateRow('users', byEmail.id, { github_id: githubId })
+        } else {
+            user = await insertRow('users', {
+                id: newId(),
+                name: profile.name || profile.login,
+                email,
+                role: 'user',
+                github_id: githubId,
+            })
+        }
+    }
+
+    // 4. Issue the same JWT as the password login
+    res.json({ token: signToken(user), user: publicUser(user) })
+}))
+
+
+
 // ---------- teams ----------
 
 app.get('/api/teams', h(async (req, res) => res.json(await listAll('teams'))))

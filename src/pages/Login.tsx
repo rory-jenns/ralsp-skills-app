@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
+import GitHubSignInButton from '../components/GitHubSignInButton'
 
 export default function Login() {
     const [email, setEmail] = useState('')
@@ -30,6 +31,9 @@ export default function Login() {
                     <button className="px-4 py-2 bg-slate-900 text-white rounded">Sign in</button>
                 </div>
             </form>
+            <div className="flex gap-2 items-center">
+                <GitHubSignInButton onClick={auth.login} />
+            </div>
         </div>
     )
 }
