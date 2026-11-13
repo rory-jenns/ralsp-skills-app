@@ -1,0 +1,33 @@
+# docker-compose.yml
+services:
+  api:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm start"
+    # No "ports" section: the API is reachable only from other containers on this network.
+    environment:
+      PORT: 4000
+      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me}
+      FRONTEND_ORIGIN: http://localhost:5173
+    volumes:
+      - ./server:/app
+      - api_node_modules:/app/node_modules
+
+  web:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: ""
+      API_PROXY_TARGET: http://api:4000
+    volumes:
+      - ./:/app
+      - web_node_modules:/app/node_modules
+    depends_on:
+      - api
+
+volumes:
+  api_node_modules:
+  web_node_modules:
