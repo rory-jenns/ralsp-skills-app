@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
-import { useAuth } from '../auth'
-import Alert from '../components/Alert'
+import { useAuth } from '../../auth'
+import Alert from '../../components/Alert'
 
 const LEVELS = ['beginner', 'intermediate', 'advanced', 'expert']
 
@@ -144,31 +144,31 @@ export default function UserDetail() {
                     <h3 className="text-lg font-semibold">Add skill</h3>
                     {canEdit ? (
                         <form onSubmit={assignSkill} className="mt-4 space-y-4">
-                        <label className="block">
-                            <span className="text-sm font-medium text-slate-700">Skill</span>
-                            <select
-                                value={selectedSkill}
-                                onChange={e => setSelectedSkill(e.target.value)}
-                                className="mt-1 block w-full rounded border border-slate-300 bg-white px-3 py-2"
-                            >
-                                {skills.map(skill => (
-                                    <option key={skill.id} value={skill.id}>{skill.name}</option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className="block">
-                            <span className="text-sm font-medium text-slate-700">Level</span>
-                            <select
-                                value={selectedLevel}
-                                onChange={e => setSelectedLevel(e.target.value)}
-                                className="mt-1 block w-full rounded border border-slate-300 bg-white px-3 py-2"
-                            >
-                                {LEVELS.map(level => (
-                                    <option key={level} value={level}>{level}</option>
-                                ))}
-                            </select>
-                        </label>
-                        <button type="submit" className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Assign skill</button>
+                            <label className="block">
+                                <span className="text-sm font-medium text-slate-700">Skill</span>
+                                <select
+                                    value={selectedSkill}
+                                    onChange={e => setSelectedSkill(e.target.value)}
+                                    className="mt-1 block w-full rounded border border-slate-300 bg-white px-3 py-2"
+                                >
+                                    {skills.map(skill => (
+                                        <option key={skill.id} value={skill.id}>{skill.name}</option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="block">
+                                <span className="text-sm font-medium text-slate-700">Level</span>
+                                <select
+                                    value={selectedLevel}
+                                    onChange={e => setSelectedLevel(e.target.value)}
+                                    className="mt-1 block w-full rounded border border-slate-300 bg-white px-3 py-2"
+                                >
+                                    {LEVELS.map(level => (
+                                        <option key={level} value={level}>{level}</option>
+                                    ))}
+                                </select>
+                            </label>
+                            <button type="submit" className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Assign skill</button>
                         </form>
                     ) : (
                         <div className="mt-4 text-sm text-slate-600">Only the profile owner or admins can assign skills.</div>
@@ -189,13 +189,13 @@ export default function UserDetail() {
                                     <div className="font-medium">{skills.find(s => s.id === skill.skill_id)?.name || skill.skill_id}</div>
                                     <div className="text-sm text-slate-500">Level: {skill.level}</div>
                                 </div>
-                                { (auth.user?.role === 'admin' || auth.user?.id === skill.user_id) && (
+                                {(auth.user?.role === 'admin' || auth.user?.id === skill.user_id) && (
                                     <button onClick={() => deleteUserSkill(skill.id)} aria-label="Remove skill" className="ml-4 inline-flex items-center rounded-full bg-transparent p-2 text-red-600 hover:bg-red-50">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M10 3h4l1 4H9l1-4z" />
                                         </svg>
                                     </button>
-                                ) }
+                                )}
                             </div>
                         ))
                     )}

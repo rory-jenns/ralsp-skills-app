@@ -1,21 +1,23 @@
 import React, { useState } from 'react'
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
 import Home from './pages/Home'
-import Users from './pages/Users'
 import Skills from './pages/Skills'
-import Projects from './pages/Projects'
-import ProjectCreate from './pages/ProjectCreate'
-import UserDetail from './pages/UserDetail'
 import SkillDetail from './pages/SkillDetail'
-import Teams from './pages/Teams'
-import TeamDetail from './pages/TeamDetail'
-import Search from './pages/Search'
 import Categories from './pages/Categories'
-import ProjectDetail from './pages/ProjectDetail'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import MySkills from './pages/MySkills'
 import { AuthProvider, useAuth } from './auth'
+
+
+import Users from './pages/manager/Users'
+import Projects from './pages/manager/Projects'
+import ProjectCreate from './pages/manager/ProjectCreate'
+import UserDetail from './pages/manager/UserDetail'
+import Teams from './pages/manager/Teams'
+import TeamDetail from './pages/manager/TeamDetail'
+import Search from './pages/manager/Search'
+import ProjectDetail from './pages/manager/ProjectDetail'
 
 export default function App() {
     function Header() {

@@ -79,7 +79,7 @@ export default function Categories() {
                             <div className="text-red-600">{error}</div>
                         ) : categories.length === 0 ? (
                             <div className="text-slate-500">No categories created yet.</div>
-                            ) : (
+                        ) : (
                             categories.map(category => (
                                 <div key={category.id} className="flex items-start justify-between">
                                     <Link

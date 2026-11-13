@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
-import { useAuth } from '../auth'
-import Alert from '../components/Alert'
+import { useAuth } from '../../auth'
+import Alert from '../../components/Alert'
 
 export default function Teams() {
     const [teams, setTeams] = useState<any[]>([])
@@ -84,27 +84,27 @@ export default function Teams() {
                     <h3 className="text-xl font-semibold text-slate-900">Create new team</h3>
                     {auth.user ? (
                         <form onSubmit={createTeam} className="mt-6 space-y-5">
-                        <label className="block">
-                            <span className="text-sm font-medium text-slate-700">Team name</span>
-                            <input
-                                value={name}
-                                onChange={e => setName(e.target.value)}
-                                className="mt-2 block w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-slate-900 focus:outline-none"
-                                required
-                            />
-                        </label>
-                        <label className="block">
-                            <span className="text-sm font-medium text-slate-700">Description</span>
-                            <textarea
-                                value={description}
-                                onChange={e => setDescription(e.target.value)}
-                                className="mt-2 block w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-slate-900 focus:outline-none"
-                                rows={4}
-                            />
-                        </label>
-                        <button type="submit" className="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Create team</button>
-                        {message && <Alert type={messageType ?? 'info'} message={message} />}
-                    </form>
+                            <label className="block">
+                                <span className="text-sm font-medium text-slate-700">Team name</span>
+                                <input
+                                    value={name}
+                                    onChange={e => setName(e.target.value)}
+                                    className="mt-2 block w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-slate-900 focus:outline-none"
+                                    required
+                                />
+                            </label>
+                            <label className="block">
+                                <span className="text-sm font-medium text-slate-700">Description</span>
+                                <textarea
+                                    value={description}
+                                    onChange={e => setDescription(e.target.value)}
+                                    className="mt-2 block w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 focus:border-slate-900 focus:outline-none"
+                                    rows={4}
+                                />
+                            </label>
+                            <button type="submit" className="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Create team</button>
+                            {message && <Alert type={messageType ?? 'info'} message={message} />}
+                        </form>
                     ) : (
                         <div className="mt-6 text-sm text-slate-600">Sign in to create teams.</div>
                     )}

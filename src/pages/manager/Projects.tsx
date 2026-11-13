@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import Alert from '../components/Alert'
+import Alert from '../../components/Alert'
 import axios from 'axios'
-import { useAuth } from '../auth'
+import { useAuth } from '../../auth'
 
 interface Project {
     id: string
@@ -63,12 +63,12 @@ export default function Projects() {
                         <h2 className="text-3xl font-semibold text-slate-900">Projects</h2>
                         <p className="mt-2 text-slate-600">Browse active projects and run match suggestions for your team.</p>
                     </div>
-                        <div className="flex flex-wrap gap-3">
-                            {auth.user ? (
-                                <Link to="/projects/create" className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Create project</Link>
-                            ) : null}
-                            <Link to="/search" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">Search</Link>
-                        </div>
+                    <div className="flex flex-wrap gap-3">
+                        {auth.user ? (
+                            <Link to="/projects/create" className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Create project</Link>
+                        ) : null}
+                        <Link to="/search" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">Search</Link>
+                    </div>
                 </div>
                 {message && <div className="mt-4"><Alert type={messageType ?? 'info'} message={message} /></div>}
             </div>

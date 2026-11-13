@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
-import { useAuth } from '../auth'
-import Alert from '../components/Alert'
+import { useAuth } from '../../auth'
+import Alert from '../../components/Alert'
 
 export default function Users() {
     const auth = useAuth()

@@ -26,6 +26,8 @@ services:
       FRONTEND_ORIGIN: http://localhost:5173
       DATABASE_URL: postgres://skills:${POSTGRES_PASSWORD}@db:5432/skills
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      GITHUB_CLIENT: ${GITHUB_CLIENT}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
     volumes:
       - ./server:/app
       - api_node_modules:/app/node_modules
@@ -41,6 +43,7 @@ services:
     environment:
       VITE_API_URL: ""
       API_PROXY_TARGET: http://api:4000
+      VITE_GITHUB_CLIENT: ${GITHUB_CLIENT}
     volumes:
       - ./:/app
       - web_node_modules:/app/node_modules
