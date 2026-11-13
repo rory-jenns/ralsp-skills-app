@@ -13,6 +13,8 @@ import Search from './pages/Search'
 import Categories from './pages/Categories'
 import ProjectDetail from './pages/ProjectDetail'
 import Login from './pages/Login'
+import SignUp from './pages/SignUp'
+import MySkills from './pages/MySkills'
 import { AuthProvider, useAuth } from './auth'
 
 export default function App() {
@@ -24,6 +26,8 @@ export default function App() {
             <>
                 {[
                     ['/', 'Home'],
+                    ['/register', 'SignUp'],
+                    ['/my-skills', 'MySkills'],
                     ['/projects', 'Projects'],
                     ['/teams', 'Teams'],
                     ['/users', 'Users'],
@@ -70,7 +74,7 @@ export default function App() {
                             {auth.user ? (
                                 <div className="flex items-center gap-3">
                                     <div className="h-9 w-9 flex items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold">
-                                        {auth.user.name ? auth.user.name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase() : 'U'}
+                                        {auth.user.name ? auth.user.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : 'U'}
                                     </div>
                                     <div className="hidden sm:flex flex-col text-sm leading-tight">
                                         <span className="font-medium text-slate-900">{auth.user.name}</span>
@@ -117,6 +121,8 @@ export default function App() {
                             <Route path="/skills/:id" element={<SkillDetail />} />
                             <Route path="/search" element={<Search />} />
                             <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<SignUp />} />
+                            <Route path="/my-skills" element={<MySkills />} />
                         </Routes>
                     </main>
                 </div>

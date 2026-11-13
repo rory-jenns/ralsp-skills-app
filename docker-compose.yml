@@ -1,5 +1,20 @@
 # docker-compose.yml
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: skills
+      POSTGRES_USER: skills
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U skills -d skills" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # No "ports" section: only the api container talks to it.
+
   api:
     image: node:20-alpine
     working_dir: /app
@@ -7,11 +22,15 @@ services:
     # No "ports" section: the API is reachable only from other containers on this network.
     environment:
       PORT: 4000
-      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me}
+      JWT_SECRET: ${JWT_SECRET}
       FRONTEND_ORIGIN: http://localhost:5173
+      DATABASE_URL: postgres://skills:${POSTGRES_PASSWORD}@db:5432/skills
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     volumes:
       - ./server:/app
       - api_node_modules:/app/node_modules
+    depends_on:
+      - db
 
   web:
     build:
@@ -31,3 +50,4 @@ services:
 volumes:
   api_node_modules:
   web_node_modules:
+  pg_data:

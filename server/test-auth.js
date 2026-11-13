@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const axios = require('axios')
 
-const BASE = process.env.API_BASE || 'http://localhost:4000'
+const BASE = process.env.API_BASE
 const email = process.argv[2] || process.env.ADMIN_EMAIL || 'admin@example.com'
 const password = process.argv[3] || process.env.ADMIN_PASSWORD
 

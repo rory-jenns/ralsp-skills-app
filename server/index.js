@@ -1,505 +1,477 @@
-const path = require('path')
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
-const { Low } = require('lowdb')
-const { JSONFile } = require('lowdb/node')
-const { nanoid } = require('nanoid')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-require('dotenv').config()
+const { pool, initSchema, newId } = require('./db')
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret'
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+    console.error('JWT_SECRET is not set')
+    process.exit(1)
+}
+
+const PORT = process.env.PORT || 4000
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173'
+const LEVEL_RANK = { beginner: 1, intermediate: 2, advanced: 3, expert: 4 }
+
+// Columns that are safe to send to clients. password_hash is never included.
+const USER_COLS = 'id, name, email, role, team_id, created_at, updated_at'
 
 const app = express()
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173'
 app.use(cors({ origin: FRONTEND_ORIGIN }))
 app.use(express.json())
 
-const file = path.resolve(__dirname, 'db.json')
-console.log('Using DB file:', file)
-const adapter = new JSONFile(file)
-const db = new Low(adapter)
-
-async function init() {
-    await db.read()
-    const empty = !db.data || Object.keys(db.data).length === 0
-    db.data ||= { teams: [], users: [], categories: [], skills: [], user_skills: [], projects: [] }
-    if (empty) {
-        console.log('DB file was empty or missing; initializing default data structure')
-        await db.write()
-    } else {
-        console.log('DB file loaded successfully, entries:', {
-            teams: db.data.teams.length,
-            users: db.data.users.length,
-            categories: db.data.categories.length,
-            skills: db.data.skills.length,
-            projects: db.data.projects.length
-        })
-    }
-}
-
-init()
-
-// Restrict API access so only the frontend app (or XHR requests) can call it.
+// Same origin check as before. This is not authentication: any client can set these headers.
 function requireAppAccess(req, res, next) {
     const origin = (req.get('origin') || req.get('referer') || '')
     if (origin && origin.includes(FRONTEND_ORIGIN)) return next()
     if ((req.get('x-requested-with') || '').toLowerCase() === 'xmlhttprequest') return next()
     return res.status(403).json({ error: 'Forbidden: API accessible only via the web app' })
 }
-
 app.use('/api', requireAppAccess)
 
-function id(len = 8) {
-    return nanoid(len)
+// ---------- helpers ----------
+
+// Wraps async handlers so errors reach the error handler (Express 4 doesn't do this itself)
+const h = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
+
+const signToken = user => jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET)
+const publicUser = ({ password_hash, ...rest }) => rest
+const canEdit = (user, row) => user.role === 'admin' || row.owner_id === user.id
+const likePattern = q => `%${String(q).replace(/[\\%_]/g, c => '\\' + c)}%`
+
+async function listAll(table) {
+    const { rows } = await pool.query(`SELECT * FROM ${table} ORDER BY created_at, id`)
+    return rows
 }
 
-// deep equality check for duplicate detection
-function deepEqual(a, b) {
-    if (a === b) return true
-    if (a && b && typeof a === 'object' && typeof b === 'object') {
-        if (Array.isArray(a) !== Array.isArray(b)) return false
-        if (Array.isArray(a)) {
-            if (a.length !== b.length) return false
-            for (let i = 0; i < a.length; i++) if (!deepEqual(a[i], b[i])) return false
-            return true
-        }
-        const keysA = Object.keys(a).filter(k => k !== 'id' && k !== 'created_at' && k !== 'updated_at')
-        const keysB = Object.keys(b).filter(k => k !== 'id' && k !== 'created_at' && k !== 'updated_at')
-        if (keysA.length !== keysB.length) return false
-        keysA.sort(); keysB.sort()
-        for (let i = 0; i < keysA.length; i++) if (keysA[i] !== keysB[i]) return false
-        for (const k of keysA) if (!deepEqual(a[k], b[k])) return false
-        return true
+async function getRow(table, id) {
+    const { rows } = await pool.query(`SELECT * FROM ${table} WHERE id = $1`, [id])
+    return rows[0] || null
+}
+
+async function insertRow(table, data) {
+    const cols = Object.keys(data)
+    const sql = `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${cols.map((_, i) => `$${i + 1}`).join(', ')}) RETURNING *`
+    const { rows } = await pool.query(sql, Object.values(data))
+    return rows[0]
+}
+
+async function updateRow(table, id, changes) {
+    const cols = Object.keys(changes)
+    if (cols.length === 0) return getRow(table, id)
+    const sets = cols.map((c, i) => `${c} = $${i + 2}`).join(', ')
+    const { rows } = await pool.query(
+        `UPDATE ${table} SET ${sets}, updated_at = now() WHERE id = $1 RETURNING *`,
+        [id, ...Object.values(changes)]
+    )
+    return rows[0] || null
+}
+
+// Only whitelisted fields from the request body reach the database.
+const EDITABLE = {
+    teams: ['name', 'description'],
+    categories: ['name'],
+    skills: ['name', 'category_id', 'tags'],
+    projects: ['name', 'summary', 'owner_team_id', 'status', 'required_skills'],
+}
+
+function editable(table, body) {
+    const out = {}
+    for (const f of EDITABLE[table]) {
+        if (body[f] === undefined) continue
+        let v = body[f]
+        if (v === '' && f.endsWith('_id')) v = null
+        if (f === 'tags') v = Array.isArray(v) ? v : []
+        if (f === 'required_skills') v = JSON.stringify(Array.isArray(v) ? v : [])
+        out[f] = v
     }
-    return false
+    return out
 }
 
-function isExactDuplicate(collection, candidate) {
-    return collection.some(item => deepEqual(item, candidate))
-}
-
-// Authentication middleware
-async function getUserFromPayload(payload) {
-    await db.read()
-    if (!payload || !payload.id) return null
-    return db.data.users.find(u => u.id === payload.id) || null
-}
-
-function isAuthenticated(req, res, next) {
-    const auth = (req.headers.authorization || '').split(' ')
-    if (auth[0] !== 'Bearer' || !auth[1]) return res.status(401).json({ error: 'Missing token' })
+async function requireAuth(req, res, next) {
+    const [scheme, token] = (req.headers.authorization || '').split(' ')
+    if (scheme !== 'Bearer' || !token) return res.status(401).json({ error: 'Missing token' })
+    let payload
     try {
-        const payload = jwt.verify(auth[1], JWT_SECRET)
-        req.userPayload = payload
-        return getUserFromPayload(payload).then(user => {
-            if (!user) return res.status(401).json({ error: 'Invalid token user' })
-            req.user = user
-            next()
-        }).catch(err => res.status(500).json({ error: 'Server error' }))
-    } catch (err) {
+        payload = jwt.verify(token, JWT_SECRET)
+    } catch {
         return res.status(401).json({ error: 'Invalid token' })
     }
-}
-
-function isOwnerOrAdmin(getResource) {
-    return async (req, res, next) => {
-        await db.read()
-        const resource = getResource(req, db)
-        if (!resource) return res.status(404).json({ error: 'Resource not found' })
-        if (req.user.role === 'admin' || resource.owner_id === req.user.id) return next()
-        return res.status(403).json({ error: 'Forbidden' })
+    try {
+        const { rows } = await pool.query(`SELECT ${USER_COLS} FROM users WHERE id = $1`, [payload.id])
+        if (!rows[0]) return res.status(401).json({ error: 'Invalid token user' })
+        req.user = rows[0]
+        next()
+    } catch (err) {
+        next(err)
     }
 }
 
-// Auth endpoints
-app.post('/api/auth/register', async (req, res) => {
-    await db.read()
+function getOne(table, label) {
+    return h(async (req, res) => {
+        const row = await getRow(table, req.params.id)
+        if (!row) return res.status(404).json({ error: `${label} not found` })
+        res.json(row)
+    })
+}
+
+function createOwned(table) {
+    return [requireAuth, h(async (req, res) => {
+        const data = editable(table, req.body)
+        if (!data.name) return res.status(400).json({ error: 'name is required' })
+        const row = await insertRow(table, { id: newId(), owner_id: req.user.id, ...data })
+        res.status(201).json(row)
+    })]
+}
+
+function updateOwned(table, label) {
+    return [requireAuth, h(async (req, res) => {
+        const row = await getRow(table, req.params.id)
+        if (!row) return res.status(404).json({ error: `${label} not found` })
+        if (!canEdit(req.user, row)) return res.status(403).json({ error: 'Forbidden' })
+        res.json(await updateRow(table, row.id, editable(table, req.body)))
+    })]
+}
+
+function deleteOwned(table, label) {
+    return [requireAuth, h(async (req, res) => {
+        const row = await getRow(table, req.params.id)
+        if (!row) return res.status(404).json({ error: `${label} not found` })
+        if (!canEdit(req.user, row)) return res.status(403).json({ error: 'Forbidden' })
+        await pool.query(`DELETE FROM ${table} WHERE id = $1`, [row.id])
+        res.json({ ok: true })
+    })]
+}
+
+// ---------- auth ----------
+
+app.post('/api/auth/register', h(async (req, res) => {
     const { name, email, password, team_id } = req.body
     if (!email || !password) return res.status(400).json({ error: 'email and password required' })
-    if (db.data.users.find(u => u.email === email)) return res.status(409).json({ error: 'User exists' })
-    const hash = bcrypt.hashSync(password, 10)
-    const user = { id: id(), name, email, team_id: team_id || null, password_hash: hash, role: 'user', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
-    db.data.users.push(user)
-    await db.write()
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET)
-    res.status(201).json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token })
-})
+    const exists = await pool.query('SELECT 1 FROM users WHERE email = $1', [email])
+    if (exists.rowCount) return res.status(409).json({ error: 'User exists' })
+    const user = await insertRow('users', {
+        id: newId(),
+        name: name ?? null,
+        email,
+        team_id: team_id || null,
+        password_hash: bcrypt.hashSync(password, 10),
+        role: 'user',
+    })
+    res.status(201).json({ user: publicUser(user), token: signToken(user) })
+}))
 
-app.post('/api/auth/login', async (req, res) => {
-    await db.read()
+app.post('/api/auth/login', h(async (req, res) => {
     const { email, password } = req.body
-    const user = db.data.users.find(u => u.email === email)
-    if (!user || !user.password_hash) return res.status(401).json({ error: 'Invalid credentials' })
-    const ok = bcrypt.compareSync(password, user.password_hash)
-    if (!ok) return res.status(401).json({ error: 'Invalid credentials' })
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET)
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } })
-})
-
-app.get('/api/auth/me', isAuthenticated, async (req, res) => {
-    res.json({ id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role })
-})
-
-// Teams
-app.get('/api/teams', async (req, res) => {
-    await db.read()
-    res.json(db.data.teams)
-})
-
-app.get('/api/teams/:id', async (req, res) => {
-    await db.read()
-    const team = db.data.teams.find(t => t.id === req.params.id)
-    if (!team) return res.status(404).json({ error: 'Team not found' })
-    res.json(team)
-})
-
-app.post('/api/teams', async (req, res) => {
-    // only authenticated users can create teams
-    await isAuthenticated(req, res, async () => {
-        await db.read()
-        const team = { id: id(), owner_id: req.user.id, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...req.body }
-        if (isExactDuplicate(db.data.teams, team)) return res.status(409).json({ error: 'Duplicate team' })
-        db.data.teams.push(team)
-        await db.write()
-        res.status(201).json(team)
-    })
-})
-
-// Users
-app.get('/api/users', async (req, res) => {
-    await db.read()
-    let results = db.data.users
-    if (req.query.team_id) {
-        results = results.filter(u => u.team_id === req.query.team_id)
+    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email])
+    const user = rows[0]
+    if (!user || !user.password_hash || !bcrypt.compareSync(password || '', user.password_hash)) {
+        return res.status(401).json({ error: 'Invalid credentials' })
     }
-    res.json(results)
+    res.json({ token: signToken(user), user: publicUser(user) })
+}))
+
+app.get('/api/auth/me', requireAuth, (req, res) => {
+    res.json(req.user)
 })
 
-app.post('/api/users', async (req, res) => {
-    // only admin users may create users via this endpoint; public registration uses /api/auth/register
-    await isAuthenticated(req, res, async () => {
-        if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
-        await db.read()
-        const { password, role, ...rest } = req.body
-        if (rest.email && db.data.users.find(u => u.email === rest.email)) return res.status(409).json({ error: 'User exists' })
-        const password_hash = password ? bcrypt.hashSync(password, 10) : null
-        const user = { id: id(), password_hash, role: role || 'user', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...rest }
-        if (isExactDuplicate(db.data.users, user)) return res.status(409).json({ error: 'Duplicate user' })
-        db.data.users.push(user)
-        await db.write()
-        res.status(201).json({ id: user.id, name: user.name, email: user.email, role: user.role })
+// ---------- teams ----------
+
+app.get('/api/teams', h(async (req, res) => res.json(await listAll('teams'))))
+app.get('/api/teams/:id', getOne('teams', 'Team'))
+app.post('/api/teams', ...createOwned('teams'))
+app.delete('/api/teams/:id', ...deleteOwned('teams', 'Team'))
+
+// ---------- users ----------
+
+app.get('/api/users', h(async (req, res) => {
+    const { rows } = await pool.query(
+        `SELECT ${USER_COLS} FROM users WHERE ($1::text IS NULL OR team_id = $1) ORDER BY created_at, id`,
+        [req.query.team_id || null]
+    )
+    res.json(rows)
+}))
+
+app.get('/api/users/:id', h(async (req, res) => {
+    const { rows } = await pool.query(`SELECT ${USER_COLS} FROM users WHERE id = $1`, [req.params.id])
+    if (!rows[0]) return res.status(404).json({ error: 'User not found' })
+    res.json(rows[0])
+}))
+
+app.post('/api/users', requireAuth, h(async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+    const { name, email, password, role, team_id } = req.body
+    if (!email) return res.status(400).json({ error: 'email required' })
+    const user = await insertRow('users', {
+        id: newId(),
+        name: name ?? null,
+        email,
+        role: role === 'admin' ? 'admin' : 'user',
+        team_id: team_id || null,
+        password_hash: password ? bcrypt.hashSync(password, 10) : null,
     })
-})
+    res.status(201).json(publicUser(user))
+}))
 
-app.get('/api/users/:id', async (req, res) => {
-    await db.read()
-    const user = db.data.users.find(u => u.id === req.params.id)
+app.put('/api/users/:id', requireAuth, h(async (req, res) => {
+    const isSelf = req.user.id === req.params.id
+    if (!isSelf && req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+
+    const { name, email, team_id, password, role } = req.body
+    if (role !== undefined && req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Only admins can change roles' })
+    }
+
+    const changes = {}
+    if (name !== undefined) changes.name = name
+    if (email !== undefined) changes.email = email
+    if (team_id !== undefined) changes.team_id = team_id || null
+    if (role !== undefined) changes.role = role === 'admin' ? 'admin' : 'user'
+    if (password) changes.password_hash = bcrypt.hashSync(password, 10)
+
+    const user = await updateRow('users', req.params.id, changes)
     if (!user) return res.status(404).json({ error: 'User not found' })
-    res.json(user)
-})
+    res.json(publicUser(user))
+}))
 
-app.put('/api/users/:id', async (req, res) => {
-    // only the user themselves or an admin can update a user
-    await isAuthenticated(req, res, async () => {
-        await db.read()
-        const idx = db.data.users.findIndex(u => u.id === req.params.id)
-        if (idx === -1) return res.status(404).json({ error: 'User not found' })
-        if (req.user.role !== 'admin' && req.user.id !== req.params.id) return res.status(403).json({ error: 'Forbidden' })
-        const updates = { ...req.body }
-        if (updates.password) {
-            updates.password_hash = bcrypt.hashSync(updates.password, 10)
-            delete updates.password
-        }
-        db.data.users[idx] = { ...db.data.users[idx], ...updates, updated_at: new Date().toISOString() }
-        await db.write()
-        const u = db.data.users[idx]
-        res.json({ id: u.id, name: u.name, email: u.email, role: u.role })
-    })
-})
+app.delete('/api/users/:id', requireAuth, h(async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+    const { rowCount } = await pool.query('DELETE FROM users WHERE id = $1', [req.params.id])
+    if (!rowCount) return res.status(404).json({ error: 'User not found' })
+    res.json({ ok: true })
+}))
 
-// Skills
-app.get('/api/skills', async (req, res) => {
-    await db.read()
-    const q = (req.query.q || '').toLowerCase()
-    let results = db.data.skills
+// ---------- categories ----------
+
+app.get('/api/categories', h(async (req, res) => res.json(await listAll('categories'))))
+app.post('/api/categories', ...createOwned('categories'))
+app.delete('/api/categories/:id', ...deleteOwned('categories', 'Category'))
+
+// ---------- skills ----------
+
+app.get('/api/skills', h(async (req, res) => {
+    const where = []
+    const params = []
     if (req.query.category_id) {
-        results = results.filter(s => s.category_id === req.query.category_id)
+        params.push(req.query.category_id)
+        where.push(`category_id = $${params.length}`)
     }
-    if (q) {
-        results = results.filter(s => s.name.toLowerCase().includes(q) || (s.tags || []).some(t => t.toLowerCase().includes(q)))
+    if (req.query.q) {
+        params.push(likePattern(req.query.q))
+        const n = params.length
+        where.push(`(name ILIKE $${n} OR EXISTS (SELECT 1 FROM unnest(tags) AS t WHERE t ILIKE $${n}))`)
     }
-    res.json(results)
-})
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : ''
+    const { rows } = await pool.query(`SELECT * FROM skills ${whereSql} ORDER BY created_at, id`, params)
+    res.json(rows)
+}))
 
-app.post('/api/skills', async (req, res) => {
-    // authenticated users can create skills; owner_id set to creator
-    await isAuthenticated(req, res, async () => {
-        await db.read()
-        const skill = { id: id(), owner_id: req.user.id, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...req.body }
-        if (isExactDuplicate(db.data.skills, skill)) return res.status(409).json({ error: 'Duplicate skill' })
-        db.data.skills.push(skill)
-        await db.write()
-        res.status(201).json(skill)
-    })
-})
+app.get('/api/skills/:id', getOne('skills', 'Skill'))
+app.post('/api/skills', ...createOwned('skills'))
+app.put('/api/skills/:id', ...updateOwned('skills', 'Skill'))
+app.delete('/api/skills/:id', ...deleteOwned('skills', 'Skill'))
 
-app.get('/api/skills/:id', async (req, res) => {
-    await db.read()
-    const skill = db.data.skills.find(s => s.id === req.params.id)
-    if (!skill) return res.status(404).json({ error: 'Skill not found' })
-    res.json(skill)
-})
+// ---------- projects ----------
 
-app.put('/api/skills/:id', async (req, res) => {
-    await isAuthenticated(req, res, async () => {
-        await db.read()
-        const idx = db.data.skills.findIndex(s => s.id === req.params.id)
-        if (idx === -1) return res.status(404).json({ error: 'Skill not found' })
-        const skill = db.data.skills[idx]
-        if (req.user.role !== 'admin' && skill.owner_id !== req.user.id) return res.status(403).json({ error: 'Forbidden' })
-        db.data.skills[idx] = { ...skill, ...req.body, updated_at: new Date().toISOString() }
-        await db.write()
-        res.json(db.data.skills[idx])
-    })
-})
+app.get('/api/projects', h(async (req, res) => res.json(await listAll('projects'))))
+app.get('/api/projects/:id', getOne('projects', 'Project'))
+app.post('/api/projects', ...createOwned('projects'))
+app.put('/api/projects/:id', ...updateOwned('projects', 'Project'))
+app.delete('/api/projects/:id', ...deleteOwned('projects', 'Project'))
 
-// Projects
-app.get('/api/projects', async (req, res) => {
-    await db.read()
-    res.json(db.data.projects)
-})
-
-app.post('/api/projects', async (req, res) => {
-    // authenticated users can create projects; owner_id set to creator
-    await isAuthenticated(req, res, async () => {
-        await db.read()
-        const project = { id: id(), owner_id: req.user.id, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...req.body }
-        if (isExactDuplicate(db.data.projects, project)) return res.status(409).json({ error: 'Duplicate project' })
-        db.data.projects.push(project)
-        await db.write()
-        res.status(201).json(project)
-    })
-})
-
-app.get('/api/projects/:id', async (req, res) => {
-    await db.read()
-    const project = db.data.projects.find(p => p.id === req.params.id)
+// Matching: score each user against a project's required skills
+app.post('/api/projects/:id/match', h(async (req, res) => {
+    const project = await getRow('projects', req.params.id)
     if (!project) return res.status(404).json({ error: 'Project not found' })
-    res.json(project)
-})
 
-app.put('/api/projects/:id', async (req, res) => {
-    await isAuthenticated(req, res, async () => {
-        await db.read()
-        const idx = db.data.projects.findIndex(p => p.id === req.params.id)
-        if (idx === -1) return res.status(404).json({ error: 'Project not found' })
-        const project = db.data.projects[idx]
-        if (req.user.role !== 'admin' && project.owner_id !== req.user.id) return res.status(403).json({ error: 'Forbidden' })
-        db.data.projects[idx] = { ...project, ...req.body, updated_at: new Date().toISOString() }
-        await db.write()
-        res.json(db.data.projects[idx])
-    })
-})
+    const [skillsRes, usersRes, userSkillsRes] = await Promise.all([
+        pool.query('SELECT id, name FROM skills'),
+        pool.query(`SELECT ${USER_COLS} FROM users`),
+        pool.query('SELECT user_id, skill_id, level FROM user_skills'),
+    ])
 
-// Categories
-app.get('/api/categories', async (req, res) => {
-    await db.read()
-    res.json(db.data.categories)
-})
+    const skillName = Object.fromEntries(skillsRes.rows.map(s => [s.id, s.name]))
+    const byUser = new Map()
+    for (const us of userSkillsRes.rows) {
+        if (!byUser.has(us.user_id)) byUser.set(us.user_id, [])
+        byUser.get(us.user_id).push(us)
+    }
 
-app.post('/api/categories', async (req, res) => {
-    await isAuthenticated(req, res, async () => {
-        await db.read()
-        const category = { id: id(), owner_id: req.user.id, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...req.body }
-        if (isExactDuplicate(db.data.categories, category)) return res.status(409).json({ error: 'Duplicate category' })
-        db.data.categories.push(category)
-        await db.write()
-        res.status(201).json(category)
-    })
-})
-
-// Add a user skill
-app.post('/api/users/:id/skills', async (req, res) => {
-    // only the user themselves or an admin can add user skills
-    await isAuthenticated(req, res, async () => {
-        const userId = req.params.id
-        if (req.user.role !== 'admin' && req.user.id !== userId) return res.status(403).json({ error: 'Forbidden' })
-        await db.read()
-        const { skill_id, level } = req.body
-        const entry = { id: id(), user_id: userId, skill_id, level }
-        if (isExactDuplicate(db.data.user_skills, entry)) return res.status(409).json({ error: 'User skill already exists, so taking no action' })
-        db.data.user_skills.push(entry)
-        await db.write()
-        res.json(entry)
-    })
-})
-
-// Matching endpoint: naive scoring based on levels
-const LEVELS = { beginner: 1, intermediate: 2, advanced: 3, expert: 4 }
-app.post('/api/projects/:id/match', async (req, res) => {
-    await db.read()
-    const project = db.data.projects.find(p => p.id === req.params.id)
-    if (!project) return res.status(404).json({ error: 'Project not found' })
-    const skillMap = Object.fromEntries(db.data.skills.map(skill => [skill.id, skill.name]))
-    const matches = db.data.users.map(u => {
-        const userSkills = db.data.user_skills.filter(us => us.user_id === u.id)
+    const matches = usersRes.rows.map(u => {
+        const userSkills = byUser.get(u.id) || []
         let score = 0
         let matched = 0
         const matched_skills = []
-        for (const reqSkill of project.required_skills || []) {
-            const us = userSkills.find(s => s.skill_id === reqSkill.skill_id)
-            if (us) {
-                matched++
-                matched_skills.push({
-                    skill_id: reqSkill.skill_id,
-                    skill_name: skillMap[reqSkill.skill_id] || reqSkill.skill_id,
-                    min_level: reqSkill.min_level,
-                    user_level: us.level
-                })
-                score += Math.max(0, LEVELS[us.level] - LEVELS[reqSkill.min_level] + 1)
-            }
+        for (const need of project.required_skills || []) {
+            const us = userSkills.find(s => s.skill_id === need.skill_id)
+            if (!us) continue
+            matched++
+            matched_skills.push({
+                skill_id: need.skill_id,
+                skill_name: skillName[need.skill_id] || need.skill_id,
+                min_level: need.min_level,
+                user_level: us.level,
+            })
+            score += Math.max(0, (LEVEL_RANK[us.level] ?? 0) - (LEVEL_RANK[need.min_level] ?? 0) + 1)
         }
-        return { user: u, matched, score, matched_skills }
+        return { user: publicUser(u), matched, score, matched_skills }
     })
+
     matches.sort((a, b) => b.score - a.score || b.matched - a.matched)
     res.json(matches.filter(m => m.score > 0))
-})
+}))
 
-// Import seed
-app.post('/api/import', async (req, res) => {
-    // admin-only import
-    await isAuthenticated(req, res, async () => {
-        if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
-        await db.read()
-        const data = req.body
-        for (const k of Object.keys(data)) {
-            if (!db.data[k] || db.data[k].length === 0) db.data[k] = data[k]
-        }
-        await db.write()
-        res.json({ ok: true })
-    })
-})
+// ---------- user skills ----------
 
-app.get('/api/users/:id/skills', async (req, res) => {
-    await db.read()
-    const result = db.data.user_skills.filter(us => us.user_id === req.params.id)
-    res.json(result)
-})
+app.get('/api/users/:id/skills', h(async (req, res) => {
+    const { rows } = await pool.query('SELECT * FROM user_skills WHERE user_id = $1', [req.params.id])
+    res.json(rows)
+}))
 
-app.get('/api/user-skills', async (req, res) => {
-    await db.read()
-    let entries = db.data.user_skills
-    if (req.query.user_id) {
-        entries = entries.filter(us => us.user_id === req.query.user_id)
+app.post('/api/users/:id/skills', requireAuth, h(async (req, res) => {
+    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+        return res.status(403).json({ error: 'Forbidden' })
     }
-    if (req.query.skill_id) {
-        entries = entries.filter(us => us.skill_id === req.query.skill_id)
-    }
-    res.json(entries)
-})
+    const { skill_id, level } = req.body
+    const entry = await insertRow('user_skills', { id: newId(), user_id: req.params.id, skill_id, level })
+    res.json(entry)
+}))
 
-app.get('/api/search', async (req, res) => {
-    await db.read()
-    const q = (req.query.q || '').toLowerCase()
+app.get('/api/user-skills', h(async (req, res) => {
+    const { rows } = await pool.query(
+        `SELECT * FROM user_skills
+         WHERE ($1::text IS NULL OR user_id = $1)
+           AND ($2::text IS NULL OR skill_id = $2)`,
+        [req.query.user_id || null, req.query.skill_id || null]
+    )
+    res.json(rows)
+}))
+
+app.delete('/api/user-skills/:id', requireAuth, h(async (req, res) => {
+    const entry = (await pool.query('SELECT * FROM user_skills WHERE id = $1', [req.params.id])).rows[0]
+    if (!entry) return res.status(404).json({ error: 'User skill entry not found' })
+    if (req.user.role !== 'admin' && entry.user_id !== req.user.id) {
+        return res.status(403).json({ error: 'Forbidden' })
+    }
+    await pool.query('DELETE FROM user_skills WHERE id = $1', [entry.id])
+    res.json({ ok: true })
+}))
+
+app.put('/api/user-skills/:id', requireAuth, h(async (req, res) => {
+    const { level } = req.body
+    if (!LEVEL_RANK[level]) return res.status(400).json({ error: 'Invalid level' })
+
+    const entry = (await pool.query('SELECT * FROM user_skills WHERE id = $1', [req.params.id])).rows[0]
+    if (!entry) return res.status(404).json({ error: 'User skill entry not found' })
+    if (req.user.role !== 'admin' && entry.user_id !== req.user.id) {
+        return res.status(403).json({ error: 'Forbidden' })
+    }
+
+    const { rows } = await pool.query(
+        'UPDATE user_skills SET level = $1 WHERE id = $2 RETURNING *',
+        [level, entry.id]
+    )
+    res.json(rows[0])
+}))
+
+// ---------- ignored skills ----------
+
+app.get('/api/users/:id/ignored-skills', h(async (req, res) => {
+    const { rows } = await pool.query(
+        'SELECT skill_id FROM user_ignored_skills WHERE user_id = $1',
+        [req.params.id]
+    )
+    res.json(rows.map(r => r.skill_id))
+}))
+
+app.post('/api/users/:id/ignored-skills', requireAuth, h(async (req, res) => {
+    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+        return res.status(403).json({ error: 'Forbidden' })
+    }
+    const { skill_id } = req.body
+    if (!skill_id) return res.status(400).json({ error: 'skill_id required' })
+    await pool.query(
+        'INSERT INTO user_ignored_skills (user_id, skill_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [req.params.id, skill_id]
+    )
+    res.status(201).json({ user_id: req.params.id, skill_id })
+}))
+
+app.delete('/api/users/:id/ignored-skills/:skillId', requireAuth, h(async (req, res) => {
+    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+        return res.status(403).json({ error: 'Forbidden' })
+    }
+    await pool.query(
+        'DELETE FROM user_ignored_skills WHERE user_id = $1 AND skill_id = $2',
+        [req.params.id, req.params.skillId]
+    )
+    res.json({ ok: true })
+}))
+
+app.delete('/api/users/:id/ignored-skills', requireAuth, h(async (req, res) => {
+    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+        return res.status(403).json({ error: 'Forbidden' })
+    }
+    const { rowCount } = await pool.query(
+        'DELETE FROM user_ignored_skills WHERE user_id = $1',
+        [req.params.id]
+    )
+    res.json({ ok: true, restored: rowCount })
+}))
+
+// ---------- search ----------
+
+app.get('/api/search', h(async (req, res) => {
+    const q = likePattern(req.query.q || '')
+    const searches = {
+        users: async () => (await pool.query(
+            `SELECT ${USER_COLS} FROM users WHERE name ILIKE $1 OR email ILIKE $1`, [q])).rows,
+        skills: async () => (await pool.query(
+            `SELECT s.* FROM skills s
+             LEFT JOIN categories c ON c.id = s.category_id
+             WHERE s.name ILIKE $1 OR c.name ILIKE $1
+                OR EXISTS (SELECT 1 FROM unnest(s.tags) AS t WHERE t ILIKE $1)`, [q])).rows,
+        projects: async () => (await pool.query(
+            'SELECT * FROM projects WHERE name ILIKE $1 OR summary ILIKE $1', [q])).rows,
+        teams: async () => (await pool.query(
+            'SELECT * FROM teams WHERE name ILIKE $1 OR description ILIKE $1', [q])).rows,
+        categories: async () => (await pool.query(
+            'SELECT * FROM categories WHERE name ILIKE $1', [q])).rows,
+    }
+
     const type = req.query.type || 'all'
-    const categoryNameById = Object.fromEntries(db.data.categories.map(c => [c.id, (c.name || '').toLowerCase()]))
-    const results = {
-        users: db.data.users.filter(u => u.name.toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q)),
-        skills: db.data.skills.filter(s =>
-            s.name.toLowerCase().includes(q) ||
-            (s.tags || []).some(t => t.toLowerCase().includes(q)) ||
-            (categoryNameById[s.category_id] || '').includes(q)
-        ),
-        projects: db.data.projects.filter(p => p.name.toLowerCase().includes(q) || (p.summary || '').toLowerCase().includes(q)),
-        teams: db.data.teams.filter(t => t.name.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q)),
-        categories: db.data.categories.filter(c => c.name.toLowerCase().includes(q))
-    }
-    if (type === 'all') {
-        return res.json(results)
-    }
-    res.json(results[type] || [])
+    if (type !== 'all') return res.json(searches[type] ? await searches[type]() : [])
+
+    const out = {}
+    for (const [key, fn] of Object.entries(searches)) out[key] = await fn()
+    res.json(out)
+}))
+
+// ---------- errors & startup ----------
+
+const PG_ERRORS = {
+    '23505': [409, 'Already exists'],
+    '23503': [400, 'Referenced record does not exist'],
+    '23514': [400, 'Invalid value'],
+    '23502': [400, 'Missing required field'],
+}
+
+app.use((err, req, res, next) => {
+    if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON' })
+    const mapped = PG_ERRORS[err.code]
+    if (mapped) return res.status(mapped[0]).json({ error: mapped[1] })
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
 })
 
-// Delete endpoints (owner or admin)
-app.delete('/api/teams/:id', async (req, res) => {
-    await isAuthenticated(req, res, async () => {
-        await isOwnerOrAdmin((req, db) => db.data.teams.find(t => t.id === req.params.id))(req, res, async () => {
-            await db.read()
-            const idx = db.data.teams.findIndex(t => t.id === req.params.id)
-            if (idx === -1) return res.status(404).json({ error: 'Team not found' })
-            db.data.teams.splice(idx, 1)
-            await db.write()
-            res.json({ ok: true })
-        })
-    })
-})
+async function start() {
+    await initSchema()
+    app.listen(PORT, () => console.log('API listening on', PORT))
+}
 
-app.delete('/api/users/:id', async (req, res) => {
-    await isAuthenticated(req, res, async () => {
-        await isOwnerOrAdmin((req, db) => db.data.users.find(u => u.id === req.params.id))(req, res, async () => {
-            await db.read()
-            const idx = db.data.users.findIndex(u => u.id === req.params.id)
-            if (idx === -1) return res.status(404).json({ error: 'User not found' })
-            db.data.users.splice(idx, 1)
-            await db.write()
-            res.json({ ok: true })
-        })
-    })
+start().catch(err => {
+    console.error('Startup failed:', err)
+    process.exit(1)
 })
-
-app.delete('/api/skills/:id', async (req, res) => {
-    await isAuthenticated(req, res, async () => {
-        await isOwnerOrAdmin((req, db) => db.data.skills.find(s => s.id === req.params.id))(req, res, async () => {
-            await db.read()
-            const idx = db.data.skills.findIndex(s => s.id === req.params.id)
-            if (idx === -1) return res.status(404).json({ error: 'Skill not found' })
-            db.data.skills.splice(idx, 1)
-            await db.write()
-            res.json({ ok: true })
-        })
-    })
-})
-
-app.delete('/api/projects/:id', async (req, res) => {
-    await isAuthenticated(req, res, async () => {
-        await isOwnerOrAdmin((req, db) => db.data.projects.find(p => p.id === req.params.id))(req, res, async () => {
-            await db.read()
-            const idx = db.data.projects.findIndex(p => p.id === req.params.id)
-            if (idx === -1) return res.status(404).json({ error: 'Project not found' })
-            db.data.projects.splice(idx, 1)
-            await db.write()
-            res.json({ ok: true })
-        })
-    })
-})
-
-app.delete('/api/categories/:id', async (req, res) => {
-    await isAuthenticated(req, res, async () => {
-        await isOwnerOrAdmin((req, db) => db.data.categories.find(c => c.id === req.params.id))(req, res, async () => {
-            await db.read()
-            const idx = db.data.categories.findIndex(c => c.id === req.params.id)
-            if (idx === -1) return res.status(404).json({ error: 'Category not found' })
-            db.data.categories.splice(idx, 1)
-            await db.write()
-            res.json({ ok: true })
-        })
-    })
-})
-
-// Delete a user_skill entry (owner or admin)
-app.delete('/api/user-skills/:id', async (req, res) => {
-    await isAuthenticated(req, res, async () => {
-        await db.read()
-        const idx = db.data.user_skills.findIndex(us => us.id === req.params.id)
-        if (idx === -1) return res.status(404).json({ error: 'User skill entry not found' })
-        const entry = db.data.user_skills[idx]
-        if (req.user.role !== 'admin' && entry.user_id !== req.user.id) return res.status(403).json({ error: 'Forbidden' })
-        db.data.user_skills.splice(idx, 1)
-        await db.write()
-        res.json({ ok: true })
-    })
-})
-
-const PORT = process.env.PORT || 4000
-app.listen(PORT, () => console.log('API listening on', PORT))
