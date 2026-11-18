@@ -264,8 +264,8 @@ export default function MySkills() {
                 <div
                     {...columnHandlers(IGNORED, true)}
                     className={`flex flex-col rounded border border-dashed ${overColumn === IGNORED && (dragSkillId || dragEntryId)
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-slate-300 bg-slate-100'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-slate-300 bg-slate-100'
                         }`}
                 >
                     <div className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -335,8 +335,8 @@ export default function MySkills() {
                     <div>
                         <h2 className="text-2xl font-bold">My skills</h2>
                         <p className="text-slate-600">
-                            Drag a skill from "Unregistered" into a level to add it. Drop it on the "Ignored" box to hide it
-                            without adding it. Drag between levels to change your level, and drag back to "Unregistered" to remove it.
+                            Drag a skill from &quot;Unregistered&quot; into a level to add it. Drop it on the &quot;Ignored&quot; box to hide it
+                            without adding it. Drag between levels to change your level, and drag back to &quot;Unregistered&quot; to remove it.
                             Drag a column header (⠿) onto another column to reorder columns.
                         </p>
                     </div>

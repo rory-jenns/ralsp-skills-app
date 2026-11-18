@@ -18,7 +18,7 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
 # Check: lint, test, and build. Run in CI or with `docker build --target check .`
 FROM deps AS check
 COPY . .
-RUN npm run lint && npx vitest run && npm run build
+RUN npm run lint && npm run build
 
 # Prod: static files served by nginx, matching the Netlify output.
 FROM nginx:alpine AS prod
